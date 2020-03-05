@@ -1,0 +1,29 @@
+---
+- name: configure authorized keys
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.key if item.key is string else '\n'.join(item.key) }}"
+    path: "{{ item.path }}"
+    exclusive: true
+    manage_dir: false
+  when: item.key is defined
+  loop: "{{ sshd_authorized_keys | flatten(levels=1) }}"
+
+- name: configure .ssh directory
+  file:
+    owner: "{{ item.name }}"
+    group: "{{ item.group }}"
+    path: "{{ item.dir }}"
+    mode: 0700
+  when: sshd_authorized_keys is defined
+  loop: "{{ sshd_authorized_keys | flatten(levels=1) }}"
+
+- name: configure authorized keys permissions
+  file:
+    owner: "{{ item.name }}"
+    group: "{{ item.group }}"
+    path: "{{ item.path }}"
+    mode: 0600
+  when: sshd_authorized_keys is defined
+  loop: "{{ sshd_authorized_keys | flatten(levels=1) }}"
+
